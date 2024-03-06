@@ -463,32 +463,38 @@ document.getElementById("downloadMilkPDF").addEventListener("click", function() 
 });
 
 function downloadBill(type) {
-    let textContent = "Bill Entries\n\n";
+    let textContent = "Pending Bill Entries\n\n";
     const table = document.getElementById("billEntries");
     const rows = table.querySelectorAll("tbody tr");
 
     rows.forEach(row => {
         const cells = row.querySelectorAll("td");
-        cells.forEach((cell, index) => {
-            // Check if the download is for water bill and hide milk data
-            if (type === 'water' && index === 3) {
-                return; // Skip adding milk data to text content
-            }
-            // Check if the download is for milk bill and hide water data
-            if (type === 'milk' && index === 1) {
-                return; // Skip adding water data to text content
-            }
-            // Skip the last cell which contains action buttons
-            if (index !== cells.length - 1) {
-                textContent += cell.textContent + "\t"; // Separate cell content by tab
-            }
-        });
-        textContent += "\n"; // Add new line after each row
+        const statusCellIndex = (type === 'water') ? 2 : 4; // Index of status cell for water and milk
+        const status = cells[statusCellIndex].textContent.trim();
+
+        // Check if the bill status is 'Pending', and include it in the text content
+        if (status === 'Pending') {
+            cells.forEach((cell, index) => {
+                // Check if the download is for water bill and hide milk data
+                if (type === 'water' && index === 3) {
+                    return; // Skip adding milk data to text content
+                }
+                // Check if the download is for milk bill and hide water data
+                if (type === 'milk' && index === 1) {
+                    return; // Skip adding water data to text content
+                }
+                // Skip the last cell which contains action buttons
+                if (index !== cells.length - 1) {
+                    textContent += cell.textContent + "\t"; // Separate cell content by tab
+                }
+            });
+            textContent += "\n"; // Add new line after each row
+        }
     });
 
     // Append total amount to pay based on the type of bill
-    const totalCost = (type === 'water') ? document.getElementById("totalWaterCost").textContent : document.getElementById("totalMilkCost").textContent;
-    textContent += `\nTotal Amount to Pay\n${(type === 'water') ? 'Water' : 'Milk'} Cost: Rs. ${totalCost}`;
+    const totalCost = (type === 'water') ? document.getElementById("pendingWaterCost").textContent : document.getElementById("pendingMilkCost").textContent;
+    textContent += `\nTotal Pending Amount to Pay\n${(type === 'water') ? 'Water' : 'Milk'} Cost: Rs. ${totalCost}`;
 
     // Create a Blob containing the text
     const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
@@ -496,9 +502,11 @@ function downloadBill(type) {
     // Create a link element to trigger the download
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `${type}_bill_entries.txt`;
+    link.download = `${type}_pending_bill_entries.txt`;
     link.click();
 }
+
+
 
 
 
